@@ -21,7 +21,12 @@ endif(MSVC)
 
 # Options
 option(WITH_testing "Allows tests to be run" ON)
+option(WITH_examples "Builds the examples" ON)
 
 if(WITH_testing MATCHES ON)
    enable_testing()
 endif(WITH_testing MATCHES ON)
+
+if(WITH_examples MATCHES ON)
+   add_subdirectory(examples)
+endif(WITH_examples MATCHES ON)

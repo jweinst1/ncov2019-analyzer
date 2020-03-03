@@ -55,3 +55,22 @@ printf("%zu\n", sizeof(struct foo));
 
 The above example normally prints `8`, because it's more effecient to have the field sizes of `struct foo` align
 with by 32bits than 8bits and be a total size of `5`.
+
+Lastly, C strings are terminated by a null character `'\0'`. For DNA, that would be invalid, 
+as `0` is a valid DNA sequence member. A single integer cannot terminate a DNA sequence,
+
+### Types
+
+In order to overcome the shortcomings of the `char` type, an enumeration type wrapped in a `struct` 
+may be used, with a case representing each base:
+
+```cpp
+struct DNA {
+	enum Base {
+		A = 0,
+		C = 1,
+		G = 2,
+		T = 3
+	};
+};
+```
