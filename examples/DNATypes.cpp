@@ -1,6 +1,8 @@
 #include <algorithm>
-#include <exception>
 #include <cstdio>
+#include "TestObject.h"
+
+static TestObject gTester;
 
 /**
  * Acts as a scalar type to represent DNA bases,
@@ -15,30 +17,75 @@ struct DNA {
 	};
     
     static void fromCStr(Base* dest, size_t dest_size, const char* src);
+    static void print(Base* dna, size_t dna_size);
 };
 
-void DNA::fromCStr(DNA::Base*, size_t dest_size, const char* src)
+void DNA::fromCStr(DNA::Base* dest, size_t dest_size, const char* src)
 {
-    while (dest_size && *src) {
+    while (dest_size-- && *src) {
         switch (*src) {
             case 'a':
             case 'A':
+                *dest++ = A;
                 break;
             case 'c':
             case 'C':
+                *dest++ = C;
                 break;
             case 'g':
             case 'G':
+                *dest++ = G;
                 break;
             case 't':
             case 'T':
+                *dest++ = T;
                 break;
             default:
+                // Ignore non DNA chars
                 break;
+        }
+        ++src;
+    }
+}
+
+void DNA::print(DNA::Base* dna, size_t dna_size)
+{
+    while (dna_size--) {
+        switch (*dna++) {
+             case DNA::A:
+                 std::putc('A', stdout);
+                 break;
+             case DNA::C:
+                 std::putc('C', stdout);
+                 break;
+             case DNA::G:
+                 std::putc('G', stdout);
+                 break;
+             case DNA::T:
+                 std::putc('T', stdout);
+                 break;
         }
     }
 }
 
+static void testfromCStr()
+{
+    size_t data_size = 10;
+    DNA::Base* data = new DNA::Base[data_size];
+    DNA::fromCStr(data, data_size, "AATG");
+    std::printf("Got the DNA ");
+    DNA::print(data, data_size);
+    std::puts(" .");
+    gTester.eq(data[0], DNA::A);
+    gTester.eq(data[1], DNA::A);
+    gTester.eq(data[2], DNA::T);
+    gTester.eq(data[3], DNA::G);
+    delete[] data;
+}
+
 int main(int argc, char const* argv[]) {
+    gTester.clear();
+    testfromCStr();
+    gTester.finish();
 	return 0;
 }

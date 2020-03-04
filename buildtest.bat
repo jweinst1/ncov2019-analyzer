@@ -6,3 +6,4 @@ msbuild ALL_BUILD.vcxproj
 msbuild RUN_TESTS.vcxproj
 cd ..
 rmdir /s /q build_c_bin
+echo "Finished build and run"
