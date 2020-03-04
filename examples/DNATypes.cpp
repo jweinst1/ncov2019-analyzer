@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 #include "TestObject.h"
 
 static TestObject gTester;
@@ -93,6 +94,17 @@ public:
     {
         return !_size;
     }
+	
+	size_t size() const
+	{
+		return _size;
+	}
+	
+	bool operator==(const DNASlice& other) const;
+	bool operator!=(const DNASlice& other) const
+	{
+		return !(*this == other);
+	}
 private:
     size_t _size;
     DNA::Base* _dna;
@@ -111,9 +123,28 @@ DNASlice::~DNASlice()
     delete[] _dna;
 }
 
+bool operator==(const DNASlice& other) const
+{
+	if (_size != other._size)
+		return false;
+	return std::equal(_dna, _dna + _size, other._dna, other._dna + _size);
+}
+
+static void testDNASlice()
+{
+	static const char* TESTDNA = "AGCCT";
+	DNASlice slc(TESTDNA);
+	DNASlice slc2("ACGTT");
+	DNASlice foo("ACGTT");
+	gTester.eq(foo, slc2);
+	gTester.isFalse(slc == slc2);
+	
+}
+
 int main(int argc, char const* argv[]) {
     gTester.clear();
     testfromCStr();
+	testDNASlice();
     gTester.finish();
 	return 0;
 }
