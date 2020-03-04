@@ -19,12 +19,12 @@ public:
     
     void isTrue(bool expres)
     {
-        _failures += expres ? 1 : 0;
+        _failures += !expres ? 1 : 0;
     }
     
     void isFalse(bool expres)
     {
-        _failures += !expres ? 1 : 0;
+        _failures += expres ? 1 : 0;
     }
     
     template<class T>

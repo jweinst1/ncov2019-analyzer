@@ -123,12 +123,18 @@ DNASlice::~DNASlice()
     delete[] _dna;
 }
 
-bool operator==(const DNASlice& other) const
+bool DNASlice::operator==(const DNASlice& other) const
 {
 	if (_size != other._size)
 		return false;
 	return std::equal(_dna, _dna + _size, other._dna, other._dna + _size);
 }
+
+class DNAView {
+private:
+   size_t _size;
+   const DNA::Base* _dna;   
+};
 
 static void testDNASlice()
 {
