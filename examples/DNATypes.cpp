@@ -83,6 +83,34 @@ static void testfromCStr()
     delete[] data;
 }
 
+class DNASlice {
+public:
+    DNASlice();
+    explicit DNASlice(const char* data);
+    ~DNASlice();
+    
+    bool empty() const
+    {
+        return !_size;
+    }
+private:
+    size_t _size;
+    DNA::Base* _dna;
+};
+
+DNASlice::DNASlice(): _size(0), _dna(nullptr) {}
+
+DNASlice::DNASlice(const char* data): _size(std::strlen(data)),
+                                      _dna(new DNA::Base[_size])
+{
+    DNA::fromCStr(_dna, _size, data);
+}
+
+DNASlice::~DNASlice()
+{
+    delete[] _dna;
+}
+
 int main(int argc, char const* argv[]) {
     gTester.clear();
     testfromCStr();

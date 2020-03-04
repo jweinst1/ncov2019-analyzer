@@ -74,3 +74,6 @@ struct DNA {
 	};
 };
 ```
+
+Using an `enum` to represent DNA allows DNA data to be handled with type safety, as well as
+having the other benefits described previously.
