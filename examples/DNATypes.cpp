@@ -18,7 +18,11 @@ struct DNA {
 	};
     
     static void fromCStr(Base* dest, size_t dest_size, const char* src);
-    static void print(Base* dna, size_t dna_size);
+    static void print(const Base* dna, size_t dna_size);
+    static bool contains(const Base* dna1, 
+                         size_t size1, 
+                         const Base* dna2, 
+                         size_t size2);
 };
 
 void DNA::fromCStr(DNA::Base* dest, size_t dest_size, const char* src)
@@ -49,7 +53,7 @@ void DNA::fromCStr(DNA::Base* dest, size_t dest_size, const char* src)
     }
 }
 
-void DNA::print(DNA::Base* dna, size_t dna_size)
+void DNA::print(const DNA::Base* dna, size_t dna_size)
 {
     while (dna_size--) {
         switch (*dna++) {
@@ -67,6 +71,30 @@ void DNA::print(DNA::Base* dna, size_t dna_size)
                  break;
         }
     }
+}
+
+bool DNA::contains(const DNA::Base* dna1, 
+                   size_t size1, 
+                   const DNA::Base* dna2, 
+                   size_t size2)
+{
+    int mode = 0;
+    const DNA::Base* end1 = dna1 + size1;
+    const DNA::Base* end2 = dna2 + size2;
+    const DNA::Base* matcher = dna2;
+    if (size2 > size1)
+        return false;
+    while (dna1 != end1) {
+        if (mode) {
+            
+        } else {
+            if (*matcher == *dna1) {
+                
+            }
+        }
+        ++dna1;
+    }
+    return false;
 }
 
 static void testfromCStr()
@@ -131,6 +159,15 @@ bool DNASlice::operator==(const DNASlice& other) const
 }
 
 class DNAView {
+public:
+   DNAView(const DNA::Base* dna, size_t size): _size(size),
+                                               _dna(dna)
+                                               {}
+    size_t size() const
+    {
+        return _size;
+    }
+    
 private:
    size_t _size;
    const DNA::Base* _dna;   
