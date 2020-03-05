@@ -77,7 +77,18 @@ struct DNA {
 
 Using an `enum` to represent DNA allows DNA data to be handled with type safety, as well as
 having the other benefits described previously. Simiarly to C-strings, one can handle sequences of DNA
-via pointers, such as `DNA::Base*` , or `const DNA::Base*`. 
+via pointers, such as `DNA::Base*` , or `const DNA::Base*`.
+
+Given this type, a dna sequence could be constructed by doing
+
+```cpp
+DNA::Base* dna = new DNA::Base[3]{DNA::A, DNA::G, DNA::C};
+// usage ... //
+delete[] dna;
+```
+
+However, in order to effeciently iterate and search sequences of DNA, we need the proper way
+to convert text data to dna, and data structures to ensapculate `DNA::Base*`.
 
 ### Conversion
 
@@ -128,4 +139,57 @@ void DNA::fromCStr(DNA::Base* dest, size_t dest_size, const char* src)
 This approach assumes that dna data may either be upper case or lower case. Most `C++` compilers will
 generate a jump table from a switch statement that has 5 or more cases. Therefore, the complexity of converting
 `const char*` data into `const DNA::Base*` should only be linear with respective to the length of the
-text data. 
+text data. This newly constructed sequence of DNA could be iterated and searched similar to how
+strings can be searched, except with only four possible values at any index, `A, G, C, T`. To make
+this more straight forward, we need data structures that are able of encapsulating dna. 
+
+### Containers
+
+The simplest dna data structure that can be used to hold dna is a *slice*. A slice is an object
+which has a static size, and owns a chunk of memory with `Base::DNA` written to it. A slice can be
+represented as:
+
+```cpp
+class DNASlice {
+public:
+    DNASlice();
+    explicit DNASlice(const char* data);
+    ~DNASlice();
+    
+    bool empty() const
+    {
+        return !_size;
+    }
+	
+	size_t size() const
+	{
+		return _size;
+	}
+	
+	const DNA::Base* dna() const 
+	{
+		return _dna;
+	}
+	
+private:
+    size_t _size;
+    DNA::Base* _dna;
+};
+
+DNASlice::DNASlice(): _size(0), _dna(nullptr) {}
+
+DNASlice::DNASlice(const char* data): _size(std::strlen(data)),
+                                      _dna(new DNA::Base[_size])
+{
+    DNA::fromCStr(_dna, _size, data);
+}
+
+DNASlice::~DNASlice()
+{
+    delete[] _dna;
+}
+
+```
+
+In the above approach, either an *empty* `DNASlice` can be constructed, or a slice from a
+C-string. An empty slice may be useful to represent a lack of matches from a search being run on DNA
