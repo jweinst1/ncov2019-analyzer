@@ -150,10 +150,20 @@ public:
 		return _size;
 	}
 	
+	const DNA::Base* dna() const 
+	{
+		return _dna;
+	}
+	
 	bool operator==(const DNASlice& other) const;
 	bool operator!=(const DNASlice& other) const
 	{
 		return !(*this == other);
+	}
+	
+	void print() const 
+	{
+		DNA::print(_dna, _size);
 	}
 private:
     size_t _size;
@@ -189,6 +199,17 @@ public:
     {
         return _size;
     }
+	
+	const DNA::Base* dna() const
+	{
+		return _dna;
+	}
+	
+	bool contains(const DNAView& other) const
+	{
+		// Wrap the core DNA method here.
+		return DNA::contains(_dna, _size, other._dna, other._size);
+	}
     
 private:
    size_t _size;
@@ -207,10 +228,29 @@ static void testDNASlice()
 }
 
 int main(int argc, char const* argv[]) {
-    gTester.clear();
-    testfromCStr();
-    testContains();
-	testDNASlice();
-    gTester.finish();
+	if (argc != 2) {
+		std::fprintf(stderr, "Must specify mode, got %d args\n", argc);
+		std::exit(2);
+	}
+	
+	if (std::strcmp(argv[1], "test") == 0) {
+		gTester.clear();
+		testfromCStr();
+		testContains();
+		testDNASlice();
+		gTester.finish();
+	}
+	
+	if (std::strcmp(argv[1], "show") == 0) {
+		DNASlice s1("aggctca");
+		std::printf("Created DNA slice: ");
+		s1.print();
+		std::putc('\n', stdout);
+		DNAView v1(s1.dna(), s1.size() - 2);
+		std::printf("Created a DNA view: ");
+		DNA::print(v1.dna(), v1.size());
+		std::putc('\n', stdout);
+		
+	}
 	return 0;
 }
