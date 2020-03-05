@@ -1,6 +1,6 @@
-# Analyzing the Coronavirus (nCoV2019) Genome
+# Analyzing the Coronavirus (COVID-19) Genome
 
-The coronavirus, also known as the Wuhan Coronavirus,  or `nCoV2019`, is a highly infectious disease that has to date
+The coronavirus, also known as the Wuhan Coronavirus, `COVID-2019`  or `nCoV2019`, is a highly infectious disease that has to date
 infected nearly 90,000 people around the world. Multiple nations across the globe have imposed major lockdowns and quarantines
 to help contain it's spread. `nCoV2019` is believed to have originated in Wuhan, China, but has since spread to dozens
 of other countries. South Korea and Italy have spawned new epicenters of coronavirus outbreaks, with thousands of cases
@@ -76,4 +76,56 @@ struct DNA {
 ```
 
 Using an `enum` to represent DNA allows DNA data to be handled with type safety, as well as
-having the other benefits described previously.
+having the other benefits described previously. Simiarly to C-strings, one can handle sequences of DNA
+via pointers, such as `DNA::Base*` , or `const DNA::Base*`. 
+
+### Conversion
+
+Next, we need a way to convert dna textual data into the
+`DNA::Base` type. Assuming the dna data is utf-8 or ASCII encoded, a function such as the following can work:
+
+```cpp
+struct DNA {
+	enum Base {
+		A = 0,
+		C = 1,
+		G = 2,
+		T = 3
+	};
+    
+    static void fromCStr(Base* dest, size_t dest_size, const char* src);
+}
+
+void DNA::fromCStr(DNA::Base* dest, size_t dest_size, const char* src)
+{
+    while (dest_size-- && *src) {
+        switch (*src) {
+            case 'a':
+            case 'A':
+                *dest++ = A;
+                break;
+            case 'c':
+            case 'C':
+                *dest++ = C;
+                break;
+            case 'g':
+            case 'G':
+                *dest++ = G;
+                break;
+            case 't':
+            case 'T':
+                *dest++ = T;
+                break;
+            default:
+                // Ignore non DNA chars
+                break;
+        }
+        ++src;
+    }
+}
+```
+
+This approach assumes that dna data may either be upper case or lower case. Most `C++` compilers will
+generate a jump table from a switch statement that has 5 or more cases. Therefore, the complexity of converting
+`const char*` data into `const DNA::Base*` should only be linear with respective to the length of the
+text data. 

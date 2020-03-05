@@ -3,4 +3,5 @@
 add_executable(DNATypes DNATypes.cpp)
 add_test(DNATypeTests DNATypes test)
 
-execute_process(COMMAND DNATypes show)
+# Way to run the example 
+add_custom_command(TARGET DNATypes POST_BUILD COMMAND DNATypes show )
