@@ -78,7 +78,7 @@ bool DNA::contains(const DNA::Base* dna1,
                    const DNA::Base* dna2, 
                    size_t size2)
 {
-    int mode = 0;
+    bool mode = false;
     const DNA::Base* end1 = dna1 + size1;
     const DNA::Base* end2 = dna2 + size2;
     const DNA::Base* matcher = dna2;
@@ -86,14 +86,25 @@ bool DNA::contains(const DNA::Base* dna1,
         return false;
     while (dna1 != end1) {
         if (mode) {
-            
+            if (matcher == end2)
+                return true;
+            else if (*matcher == *dna1)
+                ++matcher;
+            else {
+                matcher = dna2;
+                mode = false;
+            }
         } else {
             if (*matcher == *dna1) {
-                
+                mode = true;
+                ++matcher;
             }
         }
         ++dna1;
     }
+    // Check once here incase it's at the end
+    if (matcher == end2)
+        return true;
     return false;
 }
 
@@ -110,6 +121,17 @@ static void testfromCStr()
     gTester.eq(data[2], DNA::T);
     gTester.eq(data[3], DNA::G);
     delete[] data;
+}
+
+static void testContains()
+{
+    DNA::Base* a = new DNA::Base[10];
+    DNA::Base* b = new DNA::Base[4];
+    DNA::fromCStr(a, 10, "AATTGGCCAA");
+    DNA::fromCStr(b, 4, "CCAA");
+    gTester.isTrue(DNA::contains(a, 10, b, 4));
+    delete[] a;
+    delete[] b;
 }
 
 class DNASlice {
@@ -187,6 +209,7 @@ static void testDNASlice()
 int main(int argc, char const* argv[]) {
     gTester.clear();
     testfromCStr();
+    testContains();
 	testDNASlice();
     gTester.finish();
 	return 0;
