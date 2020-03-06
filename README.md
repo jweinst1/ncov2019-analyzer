@@ -299,4 +299,6 @@ out of the matching state.
 ### Search
 
 Now that conversion, iteration, and encapsulation of DNA have been discussed and demonstrated, we can showcase
-how to search DNA.
+how to search DNA. Previously, using an FSA was shown as a method of linear search for a particular subsequence of 
+DNA. That approach is useful, since it can count multiple occurences of some subsequence of dna in a larger
+sequence. However, it lacks the performance to be able to scan and identify against many, many sequences of DNA.
