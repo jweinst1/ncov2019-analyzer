@@ -160,15 +160,14 @@ public:
     {
         return !_size;
     }
-	
-	size_t size() const
-	{
-		return _size;
+    size_t size() const
+    {
+        return _size;
 	}
 	
 	const DNA::Base* dna() const 
 	{
-		return _dna;
+        return _dna;
 	}
 	
 private:
@@ -192,4 +191,112 @@ DNASlice::~DNASlice()
 ```
 
 In the above approach, either an *empty* `DNASlice` can be constructed, or a slice from a
-C-string. An empty slice may be useful to represent a lack of matches from a search being run on DNA
+C-string. An empty slice may be useful to represent a lack of matches from a search being run on DNA. The
+`DNA::fromCStr()` function is reused here for the `const char*` constructor. Even though dna data
+can now be encapsulated, we cannot visualize it. To do that, a customized printing method is needed to work on
+`DNA::Base*` memory.
+
+```cpp
+void DNA::print(const DNA::Base* dna, size_t dna_size)
+{
+    while (dna_size--) {
+        switch (*dna++) {
+             case DNA::A:
+                 std::putc('A', stdout);
+                 break;
+             case DNA::C:
+                 std::putc('C', stdout);
+                 break;
+             case DNA::G:
+                 std::putc('G', stdout);
+                 break;
+             case DNA::T:
+                 std::putc('T', stdout);
+                 break;
+        }
+    }
+}
+``` 
+
+This method directly prints characters to `stdout`. Since the `DNA::Base` enum has only 4 cases,
+we do not need any `default` statement. One alternative would be to construct a `const char*` that *represents*
+the base pairs of the DNA. This method uses less memory and doens't require calls to `new` and `delete`.
+
+Next, DNA needs to be searched for some desired subsequence of dna. This can be accomplished similarly
+to how one would search a string. Normally, this could just be done by calling every address in
+the string and the target subsequence with `strcmp(str1, str2) == 0`. However, since the goal here is to illustrate the use of 
+high performance methods, we can use a basic finite state machine to achieve better runtime performance.
+
+
+```cpp
+bool DNA::contains(const DNA::Base* dna1, 
+                   size_t size1, 
+                   const DNA::Base* dna2, 
+                   size_t size2)
+{
+    bool mode = false;
+    const DNA::Base* end1 = dna1 + size1;
+    const DNA::Base* end2 = dna2 + size2;
+    const DNA::Base* matcher = dna2;
+    if (size2 > size1)
+        return false;
+    while (dna1 != end1) {
+        if (mode) {
+            if (matcher == end2)
+                return true;
+            else if (*matcher == *dna1)
+                ++matcher;
+            else {
+                matcher = dna2;
+                mode = false;
+            }
+        } else {
+            if (*matcher == *dna1) {
+                mode = true;
+                ++matcher;
+            }
+        }
+        ++dna1;
+    }
+    // Check once here incase it's at the end
+    if (matcher == end2)
+        return true;
+    return false;
+}
+```
+
+The above implementation works by detecting for a match of `dna2` at any starting position in `dna1`. 
+It aliases `dna2` through `matcher`, this allows `matcher` to be reset in the case that only a partial
+match is found. Before any iteration we know that if `size2 > size1` is true, it's impossible for
+`dna2` to be contained in `dna1`.
+
+The boolean variable: 
+
+```cpp
+bool mode = false;
+```
+
+is used to determine when the function is in a *state* of matching and when it's in an
+*initial* state, still looking for the first base to match. If in the initial state, we only
+transition into the matching state if we find the first base. Now, in the matching state, the following
+conditons apply:
+
+```cpp
+    if (matcher == end2)
+        return true;
+    else if (*matcher == *dna1)
+        ++matcher;
+    else {
+        matcher = dna2;
+        mode = false;
+    }
+```
+
+Either we find match the last base of `dna2`, and thus find a *full* match, we proceed further
+toward a full match, or we fail to match a base before reaching the end, causing a reset
+out of the matching state.
+
+### Search
+
+Now that conversion, iteration, and encapsulation of DNA have been discussed and demonstrated, we can showcase
+how to search DNA.
