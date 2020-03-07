@@ -302,3 +302,44 @@ Now that conversion, iteration, and encapsulation of DNA have been discussed and
 how to search DNA. Previously, using an FSA was shown as a method of linear search for a particular subsequence of 
 DNA. That approach is useful, since it can count multiple occurences of some subsequence of dna in a larger
 sequence. However, it lacks the performance to be able to scan and identify against many, many sequences of DNA.
+
+An even mor effecient approach is to use a trie structure that's specialized for dna. Normally,
+although a trie has very fast lookup time, it's downside is using a lot of memory due to the
+amount and size of each node that is needed. Typically, a trie node could appear like this.
+
+```cpp
+
+struct TrieNode {
+    TrieNode* childNodes[128];
+    // ... other attributes //
+};
+```
+
+Here, the node has 128 child node slots because the maximum value for the `char` type in
+C is *usually* 127. However, that might differ depending on the value of `SCHAR_MAX` defined in `<limits.h>`. 
+In terms of space complexity, a trie using a node defined like this will take up a lot of memory with a
+decent amount of keys inserted. In general, the space and memory used by a trie correlatr with the
+range of characters it supports in it's keys.
+
+In the case of DNA, there are only 4 possible characters! `A, G, C, T`. Therefore, a dna trie node
+would look like this.
+
+```cpp
+struct DNANode {
+    DNANode* childNodes[4];
+    // other properties ... //
+};
+```
+
+For any given base at any given position in a DNA sequence, there are only four possible values
+for the next base. Thus, this principal can be used to make a `DNA::Base` function as the index 
+in the child nodes of a `DNANode`. The child nodes can then be accessed like
+
+```cpp
+DNA::Base* dna = new DNA::Base[3]{ DNA::A, DNA::A, DNA::G}
+DNANode node;
+node.childNodes[dna[1]]; // Use dna to get child node.
+delete[] dna;
+```
+
+Only requiring 
