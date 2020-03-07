@@ -342,4 +342,8 @@ node.childNodes[dna[1]]; // Use dna to get child node.
 delete[] dna;
 ```
 
-Only requiring 
+If a node only requires around 32-40 bytes, this makes it far more space effecient than
+a node covering the entire signed range of `char`. Next, we can choose what attirbutes and values our trie will map
+with it's keys. There are three important types of data when searching dna. One is existence, such as
+if a subsequence of dna is contained in a larger sequence. Another is counting the number of times
+a certain subsequence appears. Lastly, dna can be searched for the areas that a subsequence appears the most.
