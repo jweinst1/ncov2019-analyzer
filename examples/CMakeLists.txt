@@ -7,3 +7,4 @@ add_test(DNATypeTests DNATypes test)
 add_custom_command(TARGET DNATypes POST_BUILD COMMAND DNATypes show )
 
 add_executable(DNATrie DNATrie.cpp)
+add_test(DNATrieTests DNATrie test)

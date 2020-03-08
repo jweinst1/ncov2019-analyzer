@@ -70,8 +70,7 @@ struct DNAChunk {
 };
 
 struct DNANode {
-				
-	DNANode(DNANode* d1 = nullptr,
+    DNANode(DNANode* d1 = nullptr,
 	        DNANode* d2 = nullptr,
 			DNANode* d3 = nullptr,
 			DNANode* d4 = nullptr): count(-1),
@@ -129,7 +128,7 @@ long DNANode::find(const DNA::Base* dna, size_t size)
         return nextNode->find(dna + 1, size - 1);
 }
 
-void remove(const DNA::Base* dna, size_t size)
+void DNANode::remove(const DNA::Base* dna, size_t size)
 {
     assert(size);
     if (size == 1) {
@@ -138,7 +137,7 @@ void remove(const DNA::Base* dna, size_t size)
     }
     DNANode* nextNode = childNodes[*dna];
     if (nextNode != nullptr)
-        nextNode->remove(dna + 1, size - 1)
+        nextNode->remove(dna + 1, size - 1);
 }
 
 DNANode::~DNANode()
@@ -147,11 +146,15 @@ DNANode::~DNANode()
     if(childNodes[1] != nullptr) delete childNodes[1];
     if(childNodes[2] != nullptr) delete childNodes[2];
     if(childNodes[3] != nullptr) delete childNodes[3];
+    childNodes[0] = nullptr;
+    childNodes[1] = nullptr;
+    childNodes[2] = nullptr;
+    childNodes[3] = nullptr;
 }
 
 class DNATrie {
 public:
-   DNATrie(){}
+   DNATrie(): _count(0){}
    ~DNATrie(){}
    
    const DNANode& getRoot() const
@@ -159,21 +162,49 @@ public:
        return _root;
    }
    
+   size_t getCount() const
+   {
+       return _count;
+   }
+   
    DNATrie& operator<<(const char* input)
    {
        DNAChunk chk(input);
        _root.insert(chk.dna, chk.dsize);
+       ++_count;
        return *this;
    }
    
+   long operator[](const char* input)
+   {
+       DNAChunk chk(input);
+       return _root.find(chk.dna, chk.dsize);
+   }
+   
 private:
+   size_t _count;
    DNANode _root;
+};
+
+static void testDNANodeInsert()
+{
+    DNAChunk cnk("AGCTT");
+    DNANode dn;
+    dn.insert(cnk.dna, cnk.dsize);
+    gTester.notNull(dn.childNodes[DNA::A]);
+    gTester.notNull((dn.childNodes[DNA::A])->childNodes[DNA::G]);
 }
 
 int main(int argc, char const* argv[])
 {
-    gTester.clear();
-    
-    gTester.finish();
+	if (argc != 2) {
+		std::fprintf(stderr, "Must specify mode, got %d args\n", argc);
+		std::exit(2);
+	}
+    if (std::strcmp(argv[1], "test") == 0) {
+        gTester.clear();
+        testDNANodeInsert();
+        gTester.finish();
+    }
     return 0;
 }
