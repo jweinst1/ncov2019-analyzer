@@ -52,14 +52,18 @@ void DNA::fromCStr(DNA::Base* dest, size_t dest_size, const char* src)
 struct DNAChunk {
     DNAChunk(const char* string): dsize(strlen(string)),
                                   dna(new DNA::Base[dsize])
-   {
+    {
        DNA::fromCStr(dna, dsize, string);
-   }
+    }
     ~DNAChunk()
     {
         delete[] dna;
         dsize = 0;
     }
+    
+    DNAChunk(DNAChunk&& other): dsize(other.dsize),
+                                dna(other.dna)
+                                {}
     
     size_t dsize;
     DNA::Base* dna;
@@ -73,6 +77,8 @@ struct DNANode {
 			DNANode* d4 = nullptr): count(-1),
 			childNodes{d1, d2, d3, d4}
 				{}
+                
+    ~DNANode();
 				
 	DNANode* operator[](const DNA::Base base)
 	{
@@ -87,14 +93,15 @@ struct DNANode {
 			   childNodes[3] == nullptr;
 	}
     
-    void insert(const DNA::Base* dna, size_t size);
+    void insert(const DNA::Base* dna, size_t size, bool nested = false);
     long find(const DNA::Base* dna, size_t size);
+    void remove(const DNA::Base* dna, size_t size);
 	
 	long count;
     DNANode* childNodes[4];
 };
 
-void DNANode::insert(const DNA::Base* dna, size_t size)
+void DNANode::insert(const DNA::Base* dna, size_t size, bool nested)
 {
     assert(size);
     if (size == 1) {
@@ -105,6 +112,8 @@ void DNANode::insert(const DNA::Base* dna, size_t size)
     if (*nextNode == nullptr) {
         *nextNode = new DNANode();
     }
+    if (nested)
+        count = count == -1 ? 0 : count + 1;
     (*nextNode)->insert(dna + 1, size - 1);
 }
 
@@ -118,6 +127,47 @@ long DNANode::find(const DNA::Base* dna, size_t size)
         return -1;
     else
         return nextNode->find(dna + 1, size - 1);
+}
+
+void remove(const DNA::Base* dna, size_t size)
+{
+    assert(size);
+    if (size == 1) {
+        count = -1;
+        return;
+    }
+    DNANode* nextNode = childNodes[*dna];
+    if (nextNode != nullptr)
+        nextNode->remove(dna + 1, size - 1)
+}
+
+DNANode::~DNANode()
+{
+    if(childNodes[0] != nullptr) delete childNodes[0];
+    if(childNodes[1] != nullptr) delete childNodes[1];
+    if(childNodes[2] != nullptr) delete childNodes[2];
+    if(childNodes[3] != nullptr) delete childNodes[3];
+}
+
+class DNATrie {
+public:
+   DNATrie(){}
+   ~DNATrie(){}
+   
+   const DNANode& getRoot() const
+   {
+       return _root;
+   }
+   
+   DNATrie& operator<<(const char* input)
+   {
+       DNAChunk chk(input);
+       _root.insert(chk.dna, chk.dsize);
+       return *this;
+   }
+   
+private:
+   DNANode _root;
 }
 
 int main(int argc, char const* argv[])
