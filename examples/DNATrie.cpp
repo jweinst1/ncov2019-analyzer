@@ -49,8 +49,29 @@ void DNA::fromCStr(DNA::Base* dest, size_t dest_size, const char* src)
 }
 
 struct DNANode {
+				
+	DNANode(DNA::Base* d1 = nullptr,
+	        DNA::Base* d2 = nullptr,
+			DNA::Base* d3 = nullptr,
+			DNA::Base* d4 = nullptr): count(0),
+			childNodes{d1, d2, d3, d4}
+				{}
+				
+	DNANode* operator[](const DNA::Base base)
+	{
+		return childNodes[base];
+	}
+	
+	bool isLeaf() const
+	{
+		return childNodes[0] == nullptr &&
+		       childNodes[1] == nullptr &&
+			   childNodes[2] == nullptr &&
+			   childNodes[3] == nullptr;
+	}
+	
+	unsigned long count;
     DNANode* childNodes[4];
-    unsigned long count;
 };
 
 int main(int argc, char const* argv[])
