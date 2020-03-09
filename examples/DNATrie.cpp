@@ -54,6 +54,12 @@ struct DNAChunk {
     {
        DNA::fromCStr(dna, dsize, string);
     }
+    
+    DNAChunk(DNA::Base* data, size_t size): dsize(size),
+                                           dna(new DNA::Base[dsize])
+   {
+       std::copy(data, data + size, dna);
+   }                                       
     ~DNAChunk()
     {
         delete[] dna;
@@ -116,7 +122,7 @@ void DNANode::insert(const DNA::Base* dna, size_t size, bool nested)
         std::printf("Inserting at base: %c, size %zu\n", _dnaBaseToChar(*dna), size);
 #endif
     if (!size) {
-        count = count == -1 ? 0 : count + 1;
+        ++count;
         return;
     }
     DNANode** nextNode = &childNodes[*dna];
@@ -124,7 +130,7 @@ void DNANode::insert(const DNA::Base* dna, size_t size, bool nested)
         *nextNode = new DNANode();
     }
     if (nested)
-        count = count == -1 ? 0 : count + 1;
+        ++count;
     (*nextNode)->insert(dna + 1, size - 1);
 }
 
@@ -185,11 +191,19 @@ public:
        return *this;
    }
    
+   DNATrie& operator<<(const DNAChunk& input)
+   {
+       _root.insert(input.dna, input.dsize);
+       ++_count;
+       return *this;
+   }
+   
    long operator[](const char* input)
    {
        DNAChunk chk(input);
        return _root.find(chk.dna, chk.dsize);
    }
+   
    
 private:
    size_t _count;
@@ -218,6 +232,13 @@ static void testDNANodeFind()
     gTester.eq(result, (long)1);
 }
 
+static void testDNATrieLeftShift()
+{
+    DNATrie dt;
+    dt << "ACGGTT" << "GCCTTTAA" << "AGGCC";
+    gTester.eq(dt.getCount(), (size_t)3);
+}
+
 int main(int argc, char const* argv[])
 {
 	if (argc != 2) {
@@ -228,6 +249,7 @@ int main(int argc, char const* argv[])
         gTester.clear();
         testDNANodeInsert();
         testDNANodeFind();
+        testDNATrieLeftShift();
         gTester.finish();
     }
     return 0;

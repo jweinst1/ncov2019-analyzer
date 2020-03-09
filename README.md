@@ -321,6 +321,8 @@ In terms of space complexity, a trie using a node defined like this will take up
 decent amount of keys inserted. In general, the space and memory used by a trie correlatr with the
 range of characters it supports in it's keys.
 
+#### DNA Tries
+
 In the case of DNA, there are only 4 possible characters! `A, G, C, T`. Therefore, a dna trie node
 would look like this.
 
@@ -347,3 +349,95 @@ a node covering the entire signed range of `char`. Next, we can choose what atti
 with it's keys. There are three important types of data when searching dna. One is existence, such as
 if a subsequence of dna is contained in a larger sequence. Another is counting the number of times
 a certain subsequence appears. Lastly, dna can be searched for the areas that a subsequence appears the most.
+
+For the purposes of this article, let's use a trie which keeps a count of the DNA sequences that
+match that particular node. Assume that we may only want to monitor for particular sub regions of DNA,
+and thus small prefixes of DNA such as `AG` or `CT` are not meaningful. The trie will then have a count of `-1`
+for any node initially, and upon insertion, will increment to 0, and so on. This allows us to track only
+important sequences in the trie.
+
+The core trie class will look like this:
+
+```cpp
+struct DNANode {
+    DNANode(DNANode* d1 = nullptr,
+	        DNANode* d2 = nullptr,
+			DNANode* d3 = nullptr,
+			DNANode* d4 = nullptr): count(-1),
+			childNodes{d1, d2, d3, d4}
+				{}
+                
+    ~DNANode();
+				
+	DNANode* operator[](const DNA::Base base)
+	{
+		return childNodes[base];
+	}
+	
+	bool isLeaf() const
+	{
+		return childNodes[0] == nullptr &&
+		       childNodes[1] == nullptr &&
+			   childNodes[2] == nullptr &&
+			   childNodes[3] == nullptr;
+	}
+    
+    void insert(const DNA::Base* dna, size_t size, bool nested = false);
+    long find(const DNA::Base* dna, size_t size);
+    void remove(const DNA::Base* dna, size_t size);
+	
+	long count;
+    DNANode* childNodes[4];
+};
+```
+
+First, the node class should have a flexible constructor that can take 0 to 4 arguments
+as child nodes. The node should also possess a method to determine if it's a leaf or not. The core functionality
+of the node class comes from the `insert` and `find` methods. A `remove` method can also be implemented,
+but it's not critical for the scope of this text.
+
+To insert into a trie, we need to recursively traverse the trie, and create new nodes for whatever base 
+paths do not yet exist in the trie. Once the end of the input dna is reached, the count of the node is incremented by 1. 
+There is the option to potentially view the input dna as a nested sequence, and count all subsequences contained within it.
+Such that if the input is `ACCG`, we would increment `A`, `AC`, `ACC`, not just `ACCG`.
+
+```cpp
+void DNANode::insert(const DNA::Base* dna, size_t size, bool nested)
+{
+    if (!size) {
+        ++count;
+        return;
+    }
+    DNANode** nextNode = &childNodes[*dna];
+    if (*nextNode == nullptr) {
+        *nextNode = new DNANode();
+    }
+    if (nested)
+        ++count;
+    (*nextNode)->insert(dna + 1, size - 1);
+}
+```
+
+In the recursion scheme, the base case is `size == 0`, because this indicates the end of the dna input. `++count`
+is used instead of `count++` for a slight performance boost.
+
+Next, the trie must be able to lookup the counts associated with each DNA sequence inserted into the trie.
+The approach is similar to `insert`, but returns a `long`:
+
+```cpp
+long DNANode::find(const DNA::Base* dna, size_t size)
+{
+    if (!size)
+        return count;
+    DNANode* nextNode = childNodes[*dna];
+    if (nextNode == nullptr)
+        return -1;
+    else
+        return nextNode->find(dna + 1, size - 1);
+}
+```
+
+If `find` returns `-1`, that means the dna sequence does not exist in the trie. If it returns `0`,
+it means the sequence does exist in the trie, but has not been inserted more than once. Subsequent return values
+indicate the count of the sequence tracked within the trie.
+
