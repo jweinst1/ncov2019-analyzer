@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
-#include <cassert>
 #include "TestObject.h"
 
 static TestObject gTester;
@@ -100,10 +99,23 @@ struct DNANode {
     DNANode* childNodes[4];
 };
 
+static char _dnaBaseToChar(DNA::Base b)
+{
+    switch(b) {
+        case DNA::A: return 'A';
+        case DNA::C: return 'C';
+        case DNA::G: return 'G';
+        case DNA::T: return 'T';
+    }
+    return '\0';
+}
+
 void DNANode::insert(const DNA::Base* dna, size_t size, bool nested)
 {
-    assert(size);
-    if (size == 1) {
+#ifdef TRIE_TEST_DEBUG
+        std::printf("Inserting at base: %c, size %zu\n", _dnaBaseToChar(*dna), size);
+#endif
+    if (!size) {
         count = count == -1 ? 0 : count + 1;
         return;
     }
@@ -118,8 +130,7 @@ void DNANode::insert(const DNA::Base* dna, size_t size, bool nested)
 
 long DNANode::find(const DNA::Base* dna, size_t size)
 {
-    assert(size);
-    if (size == 1)
+    if (!size)
         return count;
     DNANode* nextNode = childNodes[*dna];
     if (nextNode == nullptr)
@@ -130,8 +141,7 @@ long DNANode::find(const DNA::Base* dna, size_t size)
 
 void DNANode::remove(const DNA::Base* dna, size_t size)
 {
-    assert(size);
-    if (size == 1) {
+    if (!size) {
         count = -1;
         return;
     }
@@ -195,6 +205,19 @@ static void testDNANodeInsert()
     gTester.notNull((dn.childNodes[DNA::A])->childNodes[DNA::G]);
 }
 
+static void testDNANodeFind()
+{
+    DNAChunk cnk1("ACGTT");
+    DNAChunk cnk2("ACGTT");
+    DNAChunk cnk3("ACGTTAAA");
+    DNANode dn;
+    dn.insert(cnk1.dna, cnk1.dsize);
+    dn.insert(cnk2.dna, cnk2.dsize);
+    dn.insert(cnk3.dna, cnk3.dsize);
+    long result = dn.find(cnk1.dna, cnk1.dsize);
+    gTester.eq(result, (long)1);
+}
+
 int main(int argc, char const* argv[])
 {
 	if (argc != 2) {
@@ -204,6 +227,7 @@ int main(int argc, char const* argv[])
     if (std::strcmp(argv[1], "test") == 0) {
         gTester.clear();
         testDNANodeInsert();
+        testDNANodeFind();
         gTester.finish();
     }
     return 0;
