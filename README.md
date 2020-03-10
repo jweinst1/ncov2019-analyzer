@@ -61,6 +61,8 @@ as `0` is a valid DNA sequence member. A single integer cannot terminate a DNA s
 
 ### Types
 
+*The code in this article is available at [this repository](https://github.com/jweinst1/ncov2019-analyzer)*
+
 In order to overcome the shortcomings of the `char` type, an enumeration type wrapped in a `struct` 
 may be used, with a case representing each base:
 
@@ -439,5 +441,83 @@ long DNANode::find(const DNA::Base* dna, size_t size)
 
 If `find` returns `-1`, that means the dna sequence does not exist in the trie. If it returns `0`,
 it means the sequence does exist in the trie, but has not been inserted more than once. Subsequent return values
-indicate the count of the sequence tracked within the trie.
+indicate the count of the sequence tracked within the trie. Although the `TrieNode` can be used directly, 
+it's more effecient to wrap it in another class that manages a root node where all incoming insertions and lookups 
+are routed to. Such a class could look like this:
+
+```cpp
+
+class DNATrie {
+public:
+   DNATrie(): _count(0){}
+   ~DNATrie(){}
+   
+   const DNANode& getRoot() const
+   {
+       return _root;
+   }
+   
+   size_t getCount() const
+   {
+       return _count;
+   }
+   
+   DNATrie& operator<<(const char* input)
+   {
+       DNAChunk chk(input);
+       _root.insert(chk.dna, chk.dsize);
+       ++_count;
+       return *this;
+   }
+   
+   DNATrie& operator<<(const DNAChunk& input)
+   {
+       _root.insert(input.dna, input.dsize);
+       ++_count;
+       return *this;
+   }
+   
+   long operator[](const char* input)
+   {
+       DNAChunk chk(input);
+       return _root.find(chk.dna, chk.dsize);
+   }
+   
+   
+private:
+   size_t _count;
+   DNANode _root;
+};
+
+```
+
+In the above class, `_count` keeps track of the number of sequences, yet not unique sequences, inserted
+into the trie. Otherwise, there would be no fast way to count the number of strings counted. The `<<` operator
+is used for insertion to make the class feel similar to stream class. The intention is for the trie to be able to
+insert a large number of DNA chunks.
+
+The DNA Trie is best suited for when the important sequences one is looking for are known. That way, varying 
+chunks of DNA can go in, and `find()` can be used on particular, important sequences.
+
+## The COVID-19 Genome
+
+Finally, we have discussed the tools and techniques to analyze DNA in a high performance context.
+Next, let's talk about the actual coronavirus genome.
+
+This coronavirus, like most, are RNA viruses. Yet, DNA can be transcribed from RNA, to make analysis more consistent.
+The genome of `COVID-19` is about 29kb on disk. This is not representative of any COVID-19 in existence, 
+this particular sequence was taken from patients in Wuhan, China. Viruses can evolve as infections spread
+overtime.
+
+*The file containing the genome can be found [here](https://github.com/jweinst1/ncov2019-analyzer/blob/master/data/COVID-19-genome.txt)*
+
+*Credits for the sequence are given to  Credits to Wu,F., Zhao,S., Yu,B., Chen,Y.M., Wang,W., Song,Z.G., Hu,Y., ao,Z.W., Tian,J.H., Pei,Y.Y., Yuan,M.L., Zhang,Y.L., Dai,F.H., Liu,Y., Wang,Q.M., Zheng,J.J., Xu,L., Holmes,E.C. and Zhang,Y.Z.*
+
+The first step in analyzing the genome is deciding what kind of patterns are important to look for, and how big are those patterns.
+Say for instance, we want to see how many times the pattern `ACGGTTCCAAT` occurs. We could read the COVID-19 genome and slice it
+every 11 bases, and feed it into an instance of a DNA Trie.
+
+### Reading the Genome
+
+Below is one example of an implementation that could be used to read the coronavirus genome.
 

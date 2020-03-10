@@ -30,3 +30,5 @@ endif(WITH_testing MATCHES ON)
 if(WITH_examples MATCHES ON)
    add_subdirectory(examples)
 endif(WITH_examples MATCHES ON)
+
+add_executable(covid19 covid19.cpp)
