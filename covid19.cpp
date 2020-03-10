@@ -217,13 +217,14 @@ static void usage_print()
     std::puts("_____________");
 }
 
-static TrieNode gTrie;
+static DNATrie gTrie;
 
-int main(int agrc, char const* argv[])
+int main(int argc, char const* argv[])
 {
-    FILE* gfp;
-    char* readBuf;
-    size_t searchSize;
+    FILE* gfp = NULL;
+    char* readBuf = NULL;
+    size_t searchSize = 0;
+    long result = 0;
     if (argc != 3) {
         usage_print();
         std::exit(1);
@@ -231,15 +232,18 @@ int main(int agrc, char const* argv[])
     // test make sure file can be opened
     gfp = std::fopen(argv[1], "r");
     if (gfp == NULL) {
-        fprintf("ERR: Genome file at '%s' cannot be opened.\n", argv[1]);
+        fprintf(stderr, "ERR: Genome file at '%s' cannot be opened.\n", argv[1]);
         std::exit(2);
     }
     searchSize = std::strlen(argv[2]);
-    readBuf = new char[searchSize + 1](0);
+    // Ingest the target gene to search
+    gTrie << argv[2];
+    readBuf = new char[searchSize + 1]();
     while (fgets(readBuf, searchSize, gfp) != NULL) {
-        // Process the read chunk of genome.
+        gTrie << readBuf;
     }
-    
-    
+    result = gTrie[argv[2]];
+    printf("The sequence '%s' appears %ld times in COVID-19 genome.\n", argv[2], result);
+    delete[] readBuf;
     return 0;
 }
