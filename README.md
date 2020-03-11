@@ -553,4 +553,69 @@ void GenomeArgument::populate(char const** args, int size, std::vector<GenomeArg
 }
 ```
 
+*Note: The above struct does not own it's `seq` field. It is purely designed to accept members of the argv array, or any C-strings which it does not own.* 
+
+The goal is to populate a vector of `GenomeArguments` directly from the main `argv` and `argc`. 
+These argument objects will be used to slice the COVID-19 genome into different sized chunks.
+Those chunks then will be inserted into the `DNATrie`. Lastly, the counts of each genome argument will be
+looked up in the Trie.
+
+Additionally, the COVID-19 genome has to be read from a `.txt` file, containing the transcribed DNA
+sequence. These pieces of functionally can be combined into a single `main()` function.
+
+```cpp
+static DNATrie gTrie;
+
+int main(int argc, char const* argv[])
+{
+    FILE* gfp = NULL;
+    char readBuf[2048] = {0};
+    std::vector<GenomeArgument> genArgs;
+    if (argc < 3) {
+        usage_print();
+        std::exit(1);
+    }
+    
+    // test make sure file can be opened
+    gfp = std::fopen(argv[1], "r");
+    if (gfp == NULL) {
+        fprintf(stderr, "ERR: Genome file at '%s' cannot be opened.\n", argv[1]);
+        std::exit(2);
+    }
+    
+    GenomeArgument::populate(argv + 2, argc - 2, genArgs);
+    
+    for (std::vector<GenomeArgument>::iterator it = genArgs.begin(); it != genArgs.end(); it++) {
+        gTrie << it->seq;
+        size_t sizeToRead = it->sSize;
+        
+        if (sizeToRead >= 2048) {
+            std::fprintf(stderr, "The genome argument '%s' is too large to search for.\n", it->seq);
+            std::exit(3);
+        }
+        if (searchedSizes.find(sizeToRead) == searchedSizes.end()) {
+            while (fgets(readBuf, sizeToRead + 1, gfp) != NULL) {
+                gTrie << readBuf;
+            }
+            std::rewind(gfp);
+            searchedSizes.insert(sizeToRead);
+        }
+        it->check(gTrie);
+        std::printf("The genome sequence '%s' appears in COVID-19 %ld times\n", it->seq, it->fSize);
+    }
+    return 0;
+}
+```
+
+The first command line argument is the path to the genome file. The remaining command line arguments
+are sequences of which to search the larger COVID-19 genome for. This code assumes whatever operating system
+it is being run on can use the `fopen` function from the C standard library and does not use UTF-16 pathnames.
+
+This implementation will do the following to run the genome search.
+
+1. Check if the genome file can be opened.
+2. Convert the command line arguments into `GenomeArgument`.
+3. For each genome argument, insert into the trie for initial count (increments from -1 to 0).
+4. Then, on the same argument, get it's size, and make sure it's below the limit.
+5. Then, on the same argument, check if it's size has already been used to slice the genome.
 

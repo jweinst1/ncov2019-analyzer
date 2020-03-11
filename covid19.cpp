@@ -285,7 +285,5 @@ int main(int argc, char const* argv[])
         it->check(gTrie);
         std::printf("The genome sequence '%s' appears in COVID-19 %ld times\n", it->seq, it->fSize);
     }
-
-
     return 0;
 }

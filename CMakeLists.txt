@@ -34,3 +34,6 @@ endif(WITH_examples MATCHES ON)
 add_executable(covid19 covid19.cpp)
 
 install(TARGETS covid19 DESTINATION bin)
+
+# Install codiv19 gencome
+install(FILES data/COVID-19-genome.txt DESTINATION dat)
