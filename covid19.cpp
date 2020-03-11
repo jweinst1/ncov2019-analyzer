@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <vector>
+#include <set>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -6,6 +8,8 @@
 /**
  * Genome analyzer for COVID19
  */
+ 
+static std::set<size_t> searchedSizes;
  
  
 struct DNA {
@@ -208,12 +212,37 @@ private:
    size_t _count;
    DNANode _root;
 };
+
+struct GenomeArgument {
+    GenomeArgument(const char* genseq): seq(genseq),
+                                        sSize(std::strlen(seq)),
+                                        fSize(0)
+                                        {}
+    void check(DNATrie& trie)
+    {
+        fSize = trie[seq];
+    }
+    
+    static void populate(char const** args, int size, std::vector<GenomeArgument>& gens);
+    
+    const char* seq;
+    size_t sSize;
+    long fSize;
+};
+
+void GenomeArgument::populate(char const** args, int size, std::vector<GenomeArgument>& gens)
+{
+    while (size--) {
+        GenomeArgument garg(*args++);
+        gens.push_back(std::move(garg));
+    }
+}
  
 static void usage_print()
 {
     std::puts("____HELP_____");
     std::puts("Usage:");
-    std::puts("$ covid19 <path_to_genome> <sequence_to_search>");
+    std::puts("$ covid19 <path_to_genome> [<seq1> ... <seqn>]");
     std::puts("_____________");
 }
 
@@ -222,28 +251,41 @@ static DNATrie gTrie;
 int main(int argc, char const* argv[])
 {
     FILE* gfp = NULL;
-    char* readBuf = NULL;
-    size_t searchSize = 0;
-    long result = 0;
-    if (argc != 3) {
+    char readBuf[2048] = {0};
+    std::vector<GenomeArgument> genArgs;
+    if (argc < 3) {
         usage_print();
         std::exit(1);
     }
+    
     // test make sure file can be opened
     gfp = std::fopen(argv[1], "r");
     if (gfp == NULL) {
         fprintf(stderr, "ERR: Genome file at '%s' cannot be opened.\n", argv[1]);
         std::exit(2);
     }
-    searchSize = std::strlen(argv[2]);
-    // Ingest the target gene to search
-    gTrie << argv[2];
-    readBuf = new char[searchSize + 1]();
-    while (fgets(readBuf, searchSize, gfp) != NULL) {
-        gTrie << readBuf;
+    
+    GenomeArgument::populate(argv + 2, argc - 2, genArgs);
+    
+    for (std::vector<GenomeArgument>::iterator it = genArgs.begin(); it != genArgs.end(); it++) {
+        gTrie << it->seq;
+        size_t sizeToRead = it->sSize;
+        
+        if (sizeToRead >= 2048) {
+            std::fprintf(stderr, "The genome argument '%s' is too large to search for.\n", it->seq);
+            std::exit(3);
+        }
+        if (searchedSizes.find(sizeToRead) == searchedSizes.end()) {
+            while (fgets(readBuf, sizeToRead + 1, gfp) != NULL) {
+                gTrie << readBuf;
+            }
+            std::rewind(gfp);
+            searchedSizes.insert(sizeToRead);
+        }
+        it->check(gTrie);
+        std::printf("The genome sequence '%s' appears in COVID-19 %ld times\n", it->seq, it->fSize);
     }
-    result = gTrie[argv[2]];
-    printf("The sequence '%s' appears %ld times in COVID-19 genome.\n", argv[2], result);
-    delete[] readBuf;
+
+
     return 0;
 }
