@@ -517,7 +517,40 @@ The first step in analyzing the genome is deciding what kind of patterns are imp
 Say for instance, we want to see how many times the pattern `ACGGTTCCAAT` occurs. We could read the COVID-19 genome and slice it
 every 11 bases, and feed it into an instance of a DNA Trie.
 
-### Reading the Genome
+### Formulating a search
 
-Below is one example of an implementation that could be used to read the coronavirus genome.
+Based on the techniques discussed previously, we can now form a search of what we want to look for in the COVID-19
+genome. Ideally, it's desirable to search for one or more sequences at a time. A solution is needed
+that will accept an arbitrary amount of `const char*` strings, convert them to `DNA::Base*`, and insert them
+into a `DNATrie`. For simplicity, the `main()` function and it's variable arguments can be used. We will
+also need a class that can be used within a `vector<>` to hold potentially many search sequences and store the
+results of each search, such as:
+
+```cpp
+struct GenomeArgument {
+    GenomeArgument(const char* genseq): seq(genseq),
+                                        sSize(std::strlen(seq)),
+                                        fSize(0)
+                                        {}
+    void check(DNATrie& trie)
+    {
+        fSize = trie[seq];
+    }
+    
+    static void populate(char const** args, int size, std::vector<GenomeArgument>& gens);
+    
+    const char* seq;
+    size_t sSize;
+    long fSize;
+};
+
+void GenomeArgument::populate(char const** args, int size, std::vector<GenomeArgument>& gens)
+{
+    while (size--) {
+        GenomeArgument garg(*args++);
+        gens.push_back(std::move(garg));
+    }
+}
+```
+
 
