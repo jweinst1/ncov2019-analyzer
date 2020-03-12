@@ -13,7 +13,7 @@ several times as many people. Yet no one knows what gives this virus an extra po
 
 What we do know though, is the sequence of it's genome. The `nCoV2019` is an RNA virus. However, researchers from the 
 Chinese Center for Disease Control and Prevention, Beijing, China [published a sequenced, reverse transcribed DNA genome](https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(20)30251-8/fulltext) of the
-coronavirus. The `nCoV2019`'s genome is around 8,000 base pairs long. Far, far shorter than complex organisms like a human or rat. Yet, still powerful
+coronavirus. The `nCoV2019`'s genome is around 29,000 base pairs long. Far, far shorter than complex organisms like a human or rat. Yet, still powerful
 enough to infect thousands of people across the entire world.
 
 Over the course of this text, we will discuss the application of high performance search methods on DNA sequences. The abstraction
@@ -505,7 +505,7 @@ Finally, we have discussed the tools and techniques to analyze DNA in a high per
 Next, let's talk about the actual coronavirus genome.
 
 This coronavirus, like most, are RNA viruses. Yet, DNA can be transcribed from RNA, to make analysis more consistent.
-The genome of `COVID-19` is about 29kb on disk. This is not representative of any COVID-19 in existence, 
+The genome of `COVID-19` is about 8kb on disk. This is not representative of any COVID-19 in existence, 
 this particular sequence was taken from patients in Wuhan, China. Viruses can evolve as infections spread
 overtime.
 
