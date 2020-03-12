@@ -224,9 +224,9 @@ This method directly prints characters to `stdout`. Since the `DNA::Base` enum h
 we do not need any `default` statement. One alternative would be to construct a `const char*` that *represents*
 the base pairs of the DNA. This method uses less memory and doens't require calls to `new` and `delete`.
 
-Next, DNA needs to be searched for some desired subsequence of dna. This can be accomplished similarly
+Next, DNA needs to be searched for some desired sub-sequence of dna. This can be accomplished similarly
 to how one would search a string. Normally, this could just be done by calling every address in
-the string and the target subsequence with `strcmp(str1, str2) == 0`. However, since the goal here is to illustrate the use of 
+the string and the target sub-sequence with `strcmp(str1, str2) == 0`. However, since the goal here is to illustrate the use of 
 high performance methods, we can use a basic finite state machine to achieve better runtime performance.
 
 
@@ -301,8 +301,8 @@ out of the matching state.
 ### Search
 
 Now that conversion, iteration, and encapsulation of DNA have been discussed and demonstrated, we can showcase
-how to search DNA. Previously, using an FSA was shown as a method of linear search for a particular subsequence of 
-DNA. That approach is useful, since it can count multiple occurences of some subsequence of dna in a larger
+how to search DNA. Previously, using an FSA was shown as a method of linear search for a particular sub-sequence of 
+DNA. That approach is useful, since it can count multiple occurences of some sub-sequence of dna in a larger
 sequence. However, it lacks the performance to be able to scan and identify against many, many sequences of DNA.
 
 An even mor effecient approach is to use a trie structure that's specialized for dna. Normally,
@@ -349,8 +349,8 @@ delete[] dna;
 If a node only requires around 32-40 bytes, this makes it far more space effecient than
 a node covering the entire signed range of `char`. Next, we can choose what attirbutes and values our trie will map
 with it's keys. There are three important types of data when searching dna. One is existence, such as
-if a subsequence of dna is contained in a larger sequence. Another is counting the number of times
-a certain subsequence appears. Lastly, dna can be searched for the areas that a subsequence appears the most.
+if a sub-sequence of dna is contained in a larger sequence. Another is counting the number of times
+a certain sub-sequence appears. Lastly, dna can be searched for the areas that a sub-sequence appears the most.
 
 For the purposes of this article, let's use a trie which keeps a count of the DNA sequences that
 match that particular node. Assume that we may only want to monitor for particular sub regions of DNA,
@@ -400,7 +400,7 @@ but it's not critical for the scope of this text.
 
 To insert into a trie, we need to recursively traverse the trie, and create new nodes for whatever base 
 paths do not yet exist in the trie. Once the end of the input dna is reached, the count of the node is incremented by 1. 
-There is the option to potentially view the input dna as a nested sequence, and count all subsequences contained within it.
+There is the option to potentially view the input dna as a nested sequence, and count all sub-sequences contained within it.
 Such that if the input is `ACCG`, we would increment `A`, `AC`, `ACC`, not just `ACCG`.
 
 ```cpp
@@ -643,7 +643,7 @@ The genome sequence 'gg' appears in COVID-19 552 times
 The genome sequence 'ctag' appears in COVID-19 22 times
 ``` 
 
-Even though these are awfully small target subsequences, there is an intriguing observation to be made.
+Even though these are awfully small target sub-sequences, there is an intriguing observation to be made.
 `a` and `g` are much more likely to appear next to each other then `c`, `t` with `a` and `g`. Next, let's look at some variations of
 a particular target sequence.
 
@@ -688,7 +688,7 @@ We can also see near the end of the genome much more repititions of `ttt`.
 
 As this virus spreads across the world, and there is no known cure for it, we can learn more about it.
 We can gain insight by using techniques like this to study the virus from a statistical and
-compoutational perspective.
+computational perspective.
 
 If you are interested in building and running some of the example programs described in this 
 article, you can find them [here](https://github.com/jweinst1/ncov2019-analyzer)
